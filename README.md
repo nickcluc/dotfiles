@@ -85,6 +85,36 @@ cd ~/.dotfiles && ./install/setup.sh
   - Linux-specific aliases and functions
   - Package manager agnostic
 
+## Homebrew Package Management
+
+This repository includes a `Brewfile` that lists all Homebrew packages, taps, and VS Code extensions. This ensures consistent package installation across different machines.
+
+### Using the Brewfile
+
+1. Install Homebrew if not already installed:
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. Install all packages from the Brewfile:
+   ```bash
+   cd ~/.dotfiles
+   brew bundle
+   ```
+
+3. To update the Brewfile with your current packages:
+   ```bash
+   brew bundle dump --file=Brewfile
+   ```
+
+### What's Included
+
+- Essential development tools (gcc, cmake, etc.)
+- Version managers (rbenv, nodenv)
+- Databases (PostgreSQL, Redis)
+- Shell enhancements (zsh, spaceship, zsh-completions)
+- VS Code extensions for Ruby development
+
 ## Customization
 
 - **Local Settings**: Create `~/.zshlocal` for machine-specific settings (not version controlled)
