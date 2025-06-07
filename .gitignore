@@ -1,0 +1,19 @@
+# Local/sensitive configurations
+zsh/local.zsh
+.zshlocal
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Logs
+*.log
+
+# Temporary files
+.tmp/
+temp/

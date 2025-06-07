@@ -1,0 +1,59 @@
+# Sheldon plugin configuration
+# https://sheldon.cli.rs/
+
+shell = "zsh"
+
+[plugins]
+
+# Oh My Zsh - core framework
+[plugins.oh-my-zsh]
+github = "ohmyzsh/ohmyzsh"
+
+# Spaceship theme - modern and informative prompt
+[plugins.spaceship]
+github = "spaceship-prompt/spaceship-prompt"
+
+# Node Version Manager
+[plugins.nvm]
+remote = "https://raw.githubusercontent.com/nvm-sh/nvm/master/nvm.sh"
+apply = ["source"]
+
+# Python version management
+[plugins.pyenv]
+github = "pyenv/pyenv"
+apply = ["source"]
+
+# Ruby version management
+[plugins.rbenv]
+github = "rbenv/rbenv"
+apply = ["source"]
+
+# Docker completion and functions
+[plugins.docker]
+github = "docker/cli"
+dir = "contrib/completion/zsh"
+apply = ["fpath"]
+
+# AWS CLI completion
+[plugins.aws]
+github = "aws/aws-cli"
+dir = "bin"
+apply = ["fpath"]
+
+# ZSH plugins that enhance shell experience
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
+
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+
+# Useful utility plugins
+[plugins.alias-tips]
+github = "djui/alias-tips"
+
+# Commenting out zsh-notify since it's causing issues on macOS
+# [plugins.zsh-notify]
+# github = "marzocchi/zsh-notify"
