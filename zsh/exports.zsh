@@ -81,7 +81,7 @@ export LESS="${less_opts[*]}"
 # Default editor for local and remote sessions
 if [[ -n "$SSH_CONNECTION" ]]; then
   # on the server
-  if [ command -v vim >/dev/null 2>&1 ]; then
+  if command -v vim >/dev/null 2>&1; then
     export EDITOR="vim"
   else
     export EDITOR="vi"

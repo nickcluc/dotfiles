@@ -1,6 +1,10 @@
 # ------------------------------------------------------------------------------
 # ZSH Configuration Aliases
 # ------------------------------------------------------------------------------
+
+echo "Loading aliases..."
+
+# ZSH Configuration
 alias zshconfig="$EDITOR ~/.zshrc"
 alias ohmyzsh="$EDITOR ~/.oh-my-zsh"
 alias src="source ~/.zshrc"
@@ -161,3 +165,5 @@ alias dea="deactivate"
 # ------------------------------------------------------------------------------
 
 alias :fire:="🔥"
+
+echo "Aliases loaded successfully!"

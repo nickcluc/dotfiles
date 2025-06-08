@@ -1,12 +1,38 @@
+# Ensure we're running in Zsh mode
+if [ -n "$BASH_VERSION" ]; then
+    exec /home/linuxbrew/.linuxbrew/bin/zsh "$0" "$@"
+fi
+
+# Load required ZSH modules first
+autoload -Uz colors
+
+# Set DOTFILES path first, before anything else
+export DOTFILES="$HOME/.dotfiles"
+echo "DOTFILES set to: $DOTFILES"
+
+# Detect OS type
+case "$(uname)" in
+  Darwin)
+    export OS_TYPE="macos"
+    ;;
+  Linux)
+    export OS_TYPE="linux"
+    ;;
+  *)
+    export OS_TYPE="unknown"
+    ;;
+esac
+
 # Fig pre block. Keep at the top of this file.
-[[ -f "$HOME/.fig/shell/zshrc.pre.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.pre.zsh"
+if [[ "$OS_TYPE" == "macos" && -f "$HOME/.fig/shell/zshrc.pre.zsh" ]]; then
+  builtin source "$HOME/.fig/shell/zshrc.pre.zsh"
+elif [[ "$OS_TYPE" == "linux" && -f "$HOME/.fig/shell/zshrc.pre.zsh" ]]; then
+  builtin source "$HOME/.fig/shell/zshrc.pre.zsh"
+fi
 
 # ------------------------------------------------------------------------------
 # New Organized ZSH Configuration
 # ------------------------------------------------------------------------------
-
-# Export path to root of dotfiles repo
-export DOTFILES=${DOTFILES:="$HOME/.dotfiles"}
 
 # Do not override files using `>`, but it's still possible using `>!`
 set -o noclobber
@@ -15,13 +41,12 @@ set -o noclobber
 # ZSH Configuration
 # ------------------------------------------------------------------------------
 
-# Load completions
-autoload -U compinit
-compinit -i
-
 # Load colors
-autoload -U colors
 colors
+
+# Bracketed paste magic configuration
+zstyle :bracketed-paste-magic paste-init pasteinit
+zstyle :bracketed-paste-magic paste-finish pastefinish
 
 # Basic zsh settings
 HISTFILE=~/.zsh_history
@@ -38,25 +63,54 @@ setopt CORRECT                  # Auto correct mistakes
 setopt EXTENDED_GLOB            # Extended globbing
 
 # ------------------------------------------------------------------------------
-# Load Organized Configuration Modules
-# ------------------------------------------------------------------------------
-
-# Load all zsh configuration files
-for config_file in "$DOTFILES"/zsh/*.zsh; do
-  [ -r "$config_file" ] && source "$config_file"
-done
-
-# ------------------------------------------------------------------------------
-# Oh My Zsh Configuration
+# Oh My Zsh & Plugins (Sheldon)
 # ------------------------------------------------------------------------------
 
 ZSH_DISABLE_COMPFIX=true
 
-# OMZ is managed by Sheldon
-export ZSH="$HOME/.local/share/sheldon/repos/github.com/ohmyzsh/ohmyzsh"
-
 # Shell plugins (managed by Sheldon)
 eval "$(sheldon source)"
+
+# Explicitly source Spaceship if prompt spaceship doesn't work
+if [ -f "${HOME}/.local/share/sheldon/repos/github.com/spaceship-prompt/spaceship-prompt/spaceship.zsh" ]; then
+  source "${HOME}/.local/share/sheldon/repos/github.com/spaceship-prompt/spaceship-prompt/spaceship.zsh"
+fi
+
+# ------------------------------------------------------------------------------
+# Load Organized Configuration Modules
+# ------------------------------------------------------------------------------
+
+# Load all zsh configuration files
+if [[ -d "$DOTFILES/zsh" ]]; then
+    echo "Loading zsh configuration files from: $DOTFILES/zsh"
+    for config_file in "$DOTFILES"/zsh/*.zsh; do
+        if [[ -r "$config_file" ]]; then
+            echo "Loading: $config_file"
+            source "$config_file"
+        fi
+    done
+else
+    echo "Warning: $DOTFILES/zsh directory not found"
+fi
+
+# Set Spaceship theme configuration
+SPACESHIP_PROMPT_ORDER=(
+  time          # Time stamps section
+  user          # Username section
+  dir           # Current directory section
+  host          # Hostname section
+  git           # Git section (git_branch + git_status)
+  node          # Node.js section
+  ruby          # Ruby section
+  python        # Python section
+  docker        # Docker section
+  exec_time     # Execution time
+  line_sep      # Line break
+  battery       # Battery level and status
+  jobs          # Background jobs indicator
+  exit_code     # Exit code section
+  char          # Prompt character
+)
 
 # ------------------------------------------------------------------------------
 # Tool Configuration
@@ -88,8 +142,19 @@ fi
 
 # ------------------------------------------------------------------------------
 
-# Fig post block. Keep at the bottom of this file.
-[[ -f "$HOME/.fig/shell/zshrc.post.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.post.zsh"
+# Homebrew completions (macOS and Linux)
+if [[ "$OS_TYPE" == "macos" ]]; then
+  HOMEBREW_PREFIX="/opt/homebrew"
+else
+  HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
+fi
+if [ -s "$HOMEBREW_PREFIX/share/zsh/site-functions/_qlty" ]; then
+  source "$HOMEBREW_PREFIX/share/zsh/site-functions/_qlty"
+fi
 
-# qlty completions
-[ -s "/opt/homebrew/share/zsh/site-functions/_qlty" ] && source "/opt/homebrew/share/zsh/site-functions/_qlty"
+# Fig post block. Keep at the bottom of this file.
+if [[ "$OS_TYPE" == "macos" && -f "$HOME/.fig/shell/zshrc.post.zsh" ]]; then
+  builtin source "$HOME/.fig/shell/zshrc.post.zsh"
+elif [[ "$OS_TYPE" == "linux" && -f "$HOME/.fig/shell/zshrc.post.zsh" ]]; then
+  builtin source "$HOME/.fig/shell/zshrc.post.zsh"
+fi

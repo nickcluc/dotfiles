@@ -15,8 +15,8 @@ A clean, organized collection of shell configurations and dotfiles that work acr
 # Clone the repository
 git clone https://github.com/YOUR_USERNAME/.dotfiles.git ~/.dotfiles
 
-# Run the install script
-cd ~/.dotfiles && ./install/setup.sh
+# Run the install script (must use bash)
+bash ~/.dotfiles/install/setup.sh
 ```
 
 ## Manual Installation
@@ -75,7 +75,6 @@ cd ~/.dotfiles && ./install/setup.sh
 ## Platform-Specific Features
 
 - On macOS:
-
   - Terminal notifications via terminal-notifier
   - macOS-specific aliases and functions
   - Homebrew integration
@@ -85,35 +84,16 @@ cd ~/.dotfiles && ./install/setup.sh
   - Linux-specific aliases and functions
   - Package manager agnostic
 
-## Homebrew Package Management
+## Homebrew Packages Required
 
-This repository includes a `Brewfile` that lists all Homebrew packages, taps, and VS Code extensions. This ensures consistent package installation across different machines.
+To use these dotfiles, install the following packages with Homebrew (on macOS or Linux):
 
-### Using the Brewfile
+```sh
+brew install zsh sheldon pyenv rbenv nvm awscli docker alias-tips
+# Optional: brew install --cask fig
+```
 
-1. Install Homebrew if not already installed:
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-
-2. Install all packages from the Brewfile:
-   ```bash
-   cd ~/.dotfiles
-   brew bundle
-   ```
-
-3. To update the Brewfile with your current packages:
-   ```bash
-   brew bundle dump --file=Brewfile
-   ```
-
-### What's Included
-
-- Essential development tools (gcc, cmake, etc.)
-- Version managers (rbenv, nodenv)
-- Databases (PostgreSQL, Redis)
-- Shell enhancements (zsh, spaceship, zsh-completions)
-- VS Code extensions for Ruby development
+> On Linux, make sure Homebrew is installed: https://docs.brew.sh/Homebrew-on-Linux
 
 ## Customization
 
@@ -130,7 +110,7 @@ To update your dotfiles:
 ```bash
 cd ~/.dotfiles
 git pull
-./install/setup.sh
+bash install/setup.sh  # Must use bash to run the setup script
 ```
 
 ## Contributing

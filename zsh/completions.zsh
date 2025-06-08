@@ -41,5 +41,5 @@ if [ -s "/opt/homebrew/share/zsh/site-functions/_qlty" ]; then
 fi
 
 # Initialize completions
-autoload -Uz compinit
-compinit
+# autoload -Uz compinit
+# compinit
