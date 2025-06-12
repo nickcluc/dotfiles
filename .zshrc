@@ -116,6 +116,11 @@ SPACESHIP_PROMPT_ORDER=(
 # Tool Configuration
 # ------------------------------------------------------------------------------
 
+# Cursor configuration (fix sandbox issues on Linux)
+if [[ "$OS_TYPE" == "linux" ]]; then
+  alias cursor="cursor --no-sandbox"
+fi
+
 # NVM configuration
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -148,8 +153,12 @@ if [[ "$OS_TYPE" == "macos" ]]; then
 else
   HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
 fi
-if [ -s "$HOMEBREW_PREFIX/share/zsh/site-functions/_qlty" ]; then
-  source "$HOMEBREW_PREFIX/share/zsh/site-functions/_qlty"
+
+# Cursor completions
+if [[ "$OS_TYPE" == "macos" ]]; then
+  [ -s "/opt/homebrew/share/zsh/site-functions/_qlty" ] && source "/opt/homebrew/share/zsh/site-functions/_qlty"
+elif [[ "$OS_TYPE" == "linux" ]]; then
+  [ -s "/home/linuxbrew/.linuxbrew/share/zsh/site-functions/_qlty" ] && source "/home/linuxbrew/.linuxbrew/share/zsh/site-functions/_qlty"
 fi
 
 # Fig post block. Keep at the bottom of this file.

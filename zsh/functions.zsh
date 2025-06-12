@@ -27,7 +27,7 @@ compilecpp() {
 
 # Kill Rails server
 killrails() {
-  kill -9 $(cat /Users/nickclucas/work/gravy/api/tmp/pids/server.pid)
+  kill -9 $(cat tmp/pids/server.pid)
 }
 
 # This speeds up pasting w/ autosuggest

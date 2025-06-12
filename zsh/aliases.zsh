@@ -9,6 +9,9 @@ alias zshconfig="$EDITOR ~/.zshrc"
 alias ohmyzsh="$EDITOR ~/.oh-my-zsh"
 alias src="source ~/.zshrc"
 
+# Cursor IDE
+alias cursor="cursor --no-sandbox"
+
 # ------------------------------------------------------------------------------
 # Files/Movement
 # ------------------------------------------------------------------------------
@@ -159,6 +162,7 @@ alias dea="deactivate"
 
 # Git shortcuts are mostly handled by oh-my-zsh git plugin
 # Add any custom git aliases here
+alias gco="git checkout"
 
 # ------------------------------------------------------------------------------
 # Fun
