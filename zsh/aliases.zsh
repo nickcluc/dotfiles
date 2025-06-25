@@ -2,8 +2,6 @@
 # ZSH Configuration Aliases
 # ------------------------------------------------------------------------------
 
-echo "Loading aliases..."
-
 # ZSH Configuration
 alias zshconfig="$EDITOR ~/.zshrc"
 alias ohmyzsh="$EDITOR ~/.oh-my-zsh"
@@ -169,5 +167,3 @@ alias gco="git checkout"
 # ------------------------------------------------------------------------------
 
 alias :fire:="🔥"
-
-echo "Aliases loaded successfully!"

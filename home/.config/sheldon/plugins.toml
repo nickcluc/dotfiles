@@ -10,21 +10,17 @@ shell = "zsh"
 github = "ohmyzsh/ohmyzsh"
 
 # ZSH plugins that enhance shell experience
-# [plugins.zsh-syntax-highlighting]
-# github = "zsh-users/zsh-syntax-highlighting"
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
 
-# [plugins.zsh-autosuggestions]
-# github = "zsh-users/zsh-autosuggestions"
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
 
-# [plugins.zsh-completions]
-# github = "zsh-users/zsh-completions"
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
 
 [plugins.zsh-history-substring-search]
 github = "zsh-users/zsh-history-substring-search"
-
-# Spaceship theme - modern and informative prompt
-[plugins.spaceship]
-github = "spaceship-prompt/spaceship-prompt"
 
 # Node Version Manager
 [plugins.nvm]

@@ -34,9 +34,28 @@ set_default_shell() {
         error "Could not find Zsh installation"
     fi
 
+    # Check if zsh path is in /etc/shells (required for chsh on macOS)
+    if ! grep -q "^$zsh_path$" /etc/shells; then
+        log "Adding $zsh_path to /etc/shells..."
+        if ! echo "$zsh_path" | sudo tee -a /etc/shells > /dev/null; then
+            warn "Failed to add zsh to /etc/shells automatically"
+            log "Please run the following command manually:"
+            echo "echo '$zsh_path' | sudo tee -a /etc/shells"
+            log "Then run this setup script again"
+            exit 1
+        fi
+        success "Added zsh to /etc/shells"
+    fi
+
     if [ "$SHELL" != "$zsh_path" ]; then
         log "Setting Zsh as default shell..."
-        chsh -s "$zsh_path" || error "Failed to set Zsh as default shell"
+        if ! chsh -s "$zsh_path"; then
+            warn "Failed to set Zsh as default shell automatically"
+            log "Please run the following command manually:"
+            echo "chsh -s '$zsh_path'"
+            log "Then restart your terminal"
+            exit 1
+        fi
         success "Zsh set as default shell. Please restart your terminal after installation."
     else
         log "Zsh is already the default shell"
@@ -99,10 +118,18 @@ install_dependencies() {
         if ! check_command "sheldon"; then
             brew install sheldon
         fi
+
+        if ! check_command "starship"; then
+            brew install starship
+        fi
     elif [[ "$OS" == "linux" ]]; then
         if ! check_command "sheldon"; then
             curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
                 | bash -s -- --repo rossmacarthur/sheldon --to ~/.local/bin
+        fi
+
+        if ! check_command "starship"; then
+            curl --proto '=https' -fLsS https://starship.rs/install.sh | sh
         fi
 
         # Ensure ~/.local/bin is in PATH
@@ -130,6 +157,16 @@ backup_configs() {
         fi
     done
 
+    # Check for .config files that need backup
+    if [[ -d "$HOME/.config" ]]; then
+        for item in "$HOME/.config"/*; do
+            if [[ -e "$item" && ! -L "$item" ]]; then
+                needs_backup=true
+                break
+            fi
+        done
+    fi
+
     if [[ "$needs_backup" == "true" ]]; then
         log "Creating backup directory at $backup_dir"
         mkdir -p "$backup_dir"
@@ -141,9 +178,16 @@ backup_configs() {
             fi
         done
 
-        if [[ -d "$HOME/.config" && ! -L "$HOME/.config" ]]; then
-            cp -r "$HOME/.config" "$backup_dir/"
-            success "Backed up .config directory"
+        # Backup .config contents (only actual files, not symlinks)
+        if [[ -d "$HOME/.config" ]]; then
+            mkdir -p "$backup_dir/.config"
+            for item in "$HOME/.config"/*; do
+                if [[ -e "$item" && ! -L "$item" ]]; then
+                    local basename=$(basename "$item")
+                    mv "$item" "$backup_dir/.config/"
+                    success "Backed up .config/$basename"
+                fi
+            done
         fi
     else
         log "No existing configs to backup"
@@ -159,11 +203,36 @@ create_symlinks() {
         error "Source .zshrc not found in dotfiles directory"
     fi
 
+    # Create symlinks for individual files
     ln -sf "$HOME/.dotfiles/.zshrc" "$HOME/.zshrc"
-    ln -sf "$HOME/.dotfiles/home/.config" "$HOME/.config"
     ln -sf "$HOME/.dotfiles/home/.gitconfig" "$HOME/.gitconfig"
     ln -sf "$HOME/.dotfiles/home/.gitignore" "$HOME/.gitignore"
     ln -sf "$HOME/.dotfiles/home/.vimrc" "$HOME/.vimrc"
+
+    # Create symlinks for .config files
+    if [[ -d "$HOME/.dotfiles/home/.config" ]]; then
+        log "Creating .config symlinks..."
+        
+        # Create .config directory if it doesn't exist
+        mkdir -p "$HOME/.config"
+        
+        # Symlink individual config files/directories
+        for item in "$HOME/.dotfiles/home/.config"/*; do
+            if [[ -e "$item" ]]; then
+                local basename=$(basename "$item")
+                local target="$HOME/.config/$basename"
+                
+                # Remove existing file/directory if it's not a symlink
+                if [[ -e "$target" && ! -L "$target" ]]; then
+                    rm -rf "$target"
+                fi
+                
+                # Create symlink
+                ln -sf "$item" "$target"
+                success "Symlinked .config/$basename"
+            fi
+        done
+    fi
 
     success "Created symlinks"
 }

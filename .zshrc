@@ -8,7 +8,6 @@ autoload -Uz colors
 
 # Set DOTFILES path first, before anything else
 export DOTFILES="$HOME/.dotfiles"
-echo "DOTFILES set to: $DOTFILES"
 
 # Detect OS type
 case "$(uname)" in
@@ -71,46 +70,18 @@ ZSH_DISABLE_COMPFIX=true
 # Shell plugins (managed by Sheldon)
 eval "$(sheldon source)"
 
-# Explicitly source Spaceship if prompt spaceship doesn't work
-if [ -f "${HOME}/.local/share/sheldon/repos/github.com/spaceship-prompt/spaceship-prompt/spaceship.zsh" ]; then
-  source "${HOME}/.local/share/sheldon/repos/github.com/spaceship-prompt/spaceship-prompt/spaceship.zsh"
-fi
-
 # ------------------------------------------------------------------------------
 # Load Organized Configuration Modules
 # ------------------------------------------------------------------------------
 
 # Load all zsh configuration files
 if [[ -d "$DOTFILES/zsh" ]]; then
-    echo "Loading zsh configuration files from: $DOTFILES/zsh"
     for config_file in "$DOTFILES"/zsh/*.zsh; do
         if [[ -r "$config_file" ]]; then
-            echo "Loading: $config_file"
             source "$config_file"
         fi
     done
-else
-    echo "Warning: $DOTFILES/zsh directory not found"
 fi
-
-# Set Spaceship theme configuration
-SPACESHIP_PROMPT_ORDER=(
-  time          # Time stamps section
-  user          # Username section
-  dir           # Current directory section
-  host          # Hostname section
-  git           # Git section (git_branch + git_status)
-  node          # Node.js section
-  ruby          # Ruby section
-  python        # Python section
-  docker        # Docker section
-  exec_time     # Execution time
-  line_sep      # Line break
-  battery       # Battery level and status
-  jobs          # Background jobs indicator
-  exit_code     # Exit code section
-  char          # Prompt character
-)
 
 # ------------------------------------------------------------------------------
 # Tool Configuration

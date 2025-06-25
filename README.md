@@ -7,6 +7,7 @@ A clean, organized collection of shell configurations and dotfiles that work acr
 - Git
 - Zsh
 - [Sheldon](https://sheldon.cli.rs/) - Plugin manager for shell
+- [Starship](https://starship.rs/) - Cross-shell prompt
 - Terminal-notifier (macOS only, will be installed automatically if needed)
 
 ## Quick Install
@@ -27,13 +28,14 @@ bash ~/.dotfiles/install/setup.sh
    git clone https://github.com/YOUR_USERNAME/.dotfiles.git ~/.dotfiles
    ```
 
-2. Install Sheldon (if not already installed):
+2. Install Sheldon and Starship (if not already installed):
 
-   - On macOS: `brew install sheldon`
+   - On macOS: `brew install sheldon starship`
    - On Linux:
      ```bash
      curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
        | bash -s -- --repo rossmacarthur/sheldon --to ~/.local/bin
+     curl --proto '=https' -fLsS https://starship.rs/install.sh | sh
      ```
 
 3. Create symlinks:
@@ -61,13 +63,14 @@ bash ~/.dotfiles/install/setup.sh
 │   ├── exports.zsh         # Environment variables
 │   ├── functions.zsh       # Utility functions
 │   ├── keybindings.zsh     # Key bindings
-│   ├── spaceship.zsh       # Spaceship prompt config
+│   ├── theme.zsh           # Starship prompt config
 │   └── local.zsh          # Local/sensitive configs
 ├── config/                 # Application configurations
 │   ├── git/               # Git configurations
 │   ├── vim/               # Vim configurations
 │   └── etc/               # Other tool configurations
 ├── home/                  # Home directory dotfiles
+│   └── .config/           # Application configs (including starship.toml)
 ├── install/               # Installation scripts
 └── .zshrc                 # Main ZSH configuration
 ```
@@ -89,7 +92,7 @@ bash ~/.dotfiles/install/setup.sh
 To use these dotfiles, install the following packages with Homebrew (on macOS or Linux):
 
 ```sh
-brew install zsh sheldon pyenv rbenv nvm awscli docker alias-tips
+brew install zsh sheldon starship pyenv rbenv nvm awscli docker alias-tips
 # Optional: brew install --cask fig
 ```
 
