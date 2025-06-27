@@ -20,12 +20,8 @@ alias c="clear"
 # Show hidden files
 alias l.="ls -d .* --color=auto"
 
-# Using colorls gem if available, otherwise regular ls
-if command -v colorls >/dev/null 2>&1; then
-  alias ls="colorls -A"
-else
-  alias ls="ls -A --color=auto"
-fi
+# Use ls with color and show hidden files
+alias ls="ls -A --color=auto"
 
 # Quick Home Directory
 alias home="cd ~"

@@ -138,3 +138,4 @@ if [[ "$OS_TYPE" == "macos" && -f "$HOME/.fig/shell/zshrc.post.zsh" ]]; then
 elif [[ "$OS_TYPE" == "linux" && -f "$HOME/.fig/shell/zshrc.post.zsh" ]]; then
   builtin source "$HOME/.fig/shell/zshrc.post.zsh"
 fi
+export PATH="/usr/local/opt/postgresql@16/bin:$PATH"

@@ -20,6 +20,26 @@ if [ -z "$BASH_VERSION" ]; then
     error "This script must be run with bash"
 fi
 
+# Safety check: ensure we're not accidentally modifying the dotfiles directory
+check_safety() {
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local dotfiles_dir="$(cd "$script_dir/.." && pwd)"
+    
+    # Check if HOME is within the dotfiles directory (which would be dangerous)
+    if [[ "$HOME" == "$dotfiles_dir"* ]]; then
+        error "HOME directory ($HOME) is within dotfiles directory ($dotfiles_dir). This is unsafe."
+    fi
+    
+    # Check if dotfiles directory is within HOME (this is the normal case)
+    if [[ "$dotfiles_dir" == "$HOME"* ]]; then
+        log "Dotfiles directory is within HOME - this is normal"
+    else
+        warn "Dotfiles directory ($dotfiles_dir) is not within HOME ($HOME) - this might be unusual"
+    fi
+    
+    log "Safety checks passed - dotfiles directory: $dotfiles_dir"
+}
+
 # Check if Zsh is installed
 check_zsh() {
     if ! command -v zsh &> /dev/null; then
@@ -137,101 +157,132 @@ install_dependencies() {
     fi
 }
 
-# Backup existing configs
-backup_configs() {
-    local timestamp=$(date +%Y%m%d_%H%M%S)
-    local backup_dir="$HOME/.dotfiles_backup_$timestamp"
-    local files_to_backup=(
-        ".zshrc"
-        ".gitconfig"
-        ".gitignore"
-        ".vimrc"
-    )
-
-    # Only create backup if any of the files exist and are not already symlinks
-    local needs_backup=false
-    for file in "${files_to_backup[@]}"; do
-        if [[ -f "$HOME/$file" && ! -L "$HOME/$file" ]]; then
-            needs_backup=true
-            break
-        fi
-    done
-
-    # Check for .config files that need backup
-    if [[ -d "$HOME/.config" ]]; then
-        for item in "$HOME/.config"/*; do
-            if [[ -e "$item" && ! -L "$item" ]]; then
-                needs_backup=true
-                break
-            fi
-        done
-    fi
-
-    if [[ "$needs_backup" == "true" ]]; then
-        log "Creating backup directory at $backup_dir"
-        mkdir -p "$backup_dir"
-
-        for file in "${files_to_backup[@]}"; do
-            if [[ -f "$HOME/$file" && ! -L "$HOME/$file" ]]; then
-                mv "$HOME/$file" "$backup_dir/"
-                success "Backed up $file"
-            fi
-        done
-
-        # Backup .config contents (only actual files, not symlinks)
-        if [[ -d "$HOME/.config" ]]; then
-            mkdir -p "$backup_dir/.config"
-            for item in "$HOME/.config"/*; do
-                if [[ -e "$item" && ! -L "$item" ]]; then
-                    local basename=$(basename "$item")
-                    mv "$item" "$backup_dir/.config/"
-                    success "Backed up .config/$basename"
-                fi
-            done
-        fi
-    else
-        log "No existing configs to backup"
-    fi
-}
-
 # Create symlinks
 create_symlinks() {
     log "Creating symlinks..."
 
-    # Ensure source files exist before creating symlinks
-    if [[ ! -f "$HOME/.dotfiles/.zshrc" ]]; then
-        error "Source .zshrc not found in dotfiles directory"
+    # Get the dotfiles directory path
+    local dotfiles_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    log "Dotfiles directory: $dotfiles_dir"
+
+    # Create symlinks for individual files (only if they exist)
+    if [[ -f "$dotfiles_dir/.zshrc" ]]; then
+        # Remove existing file if it exists
+        if [[ -e "$HOME/.zshrc" ]]; then
+            rm -f "$HOME/.zshrc"
+        fi
+        ln -sf "$dotfiles_dir/.zshrc" "$HOME/.zshrc"
+        success "Symlinked .zshrc"
+    else
+        warn ".zshrc not found in dotfiles directory"
     fi
 
-    # Create symlinks for individual files
-    ln -sf "$HOME/.dotfiles/.zshrc" "$HOME/.zshrc"
-    ln -sf "$HOME/.dotfiles/home/.gitconfig" "$HOME/.gitconfig"
-    ln -sf "$HOME/.dotfiles/home/.gitignore" "$HOME/.gitignore"
-    ln -sf "$HOME/.dotfiles/home/.vimrc" "$HOME/.vimrc"
+    if [[ -f "$dotfiles_dir/home/.gitconfig" ]]; then
+        # Remove existing file if it exists
+        if [[ -e "$HOME/.gitconfig" ]]; then
+            rm -f "$HOME/.gitconfig"
+        fi
+        ln -sf "$dotfiles_dir/home/.gitconfig" "$HOME/.gitconfig"
+        success "Symlinked .gitconfig"
+    else
+        warn ".gitconfig not found in dotfiles directory"
+    fi
 
-    # Create symlinks for .config files
-    if [[ -d "$HOME/.dotfiles/home/.config" ]]; then
-        log "Creating .config symlinks..."
+    if [[ -f "$dotfiles_dir/home/.gitignore" ]]; then
+        # Remove existing file if it exists
+        if [[ -e "$HOME/.gitignore" ]]; then
+            rm -f "$HOME/.gitignore"
+        fi
+        ln -sf "$dotfiles_dir/home/.gitignore" "$HOME/.gitignore"
+        success "Symlinked .gitignore"
+    else
+        warn ".gitignore not found in dotfiles directory"
+    fi
+
+    if [[ -f "$dotfiles_dir/home/.vimrc" ]]; then
+        # Remove existing file if it exists
+        if [[ -e "$HOME/.vimrc" ]]; then
+            rm -f "$HOME/.vimrc"
+        fi
+        ln -sf "$dotfiles_dir/home/.vimrc" "$HOME/.vimrc"
+        success "Symlinked .vimrc"
+    else
+        warn ".vimrc not found in dotfiles directory"
+    fi
+
+    # Create symlinks for .config files (check both root and home/.config)
+    local config_source=""
+    if [[ -d "$dotfiles_dir/.config" ]]; then
+        config_source="$dotfiles_dir/.config"
+        log "Found .config directory in dotfiles root"
+    elif [[ -d "$dotfiles_dir/home/.config" ]]; then
+        config_source="$dotfiles_dir/home/.config"
+        log "Found .config directory in dotfiles/home"
+    fi
+
+    if [[ -n "$config_source" ]]; then
+        log "Creating .config symlinks from $config_source..."
         
-        # Create .config directory if it doesn't exist
+        # Complete replacement approach: backup existing .config, then recreate it
+        if [[ -d "$HOME/.config" ]]; then
+            local timestamp=$(date +%Y%m%d_%H%M%S)
+            local backup_dir="$HOME/.config_backup_$timestamp"
+            log "Backing up existing .config to $backup_dir"
+            mv "$HOME/.config" "$backup_dir"
+        fi
+        
+        # Create fresh .config directory
         mkdir -p "$HOME/.config"
         
         # Symlink individual config files/directories
-        for item in "$HOME/.dotfiles/home/.config"/*; do
+        for item in "$config_source"/*; do
             if [[ -e "$item" ]]; then
-                local basename=$(basename "$item")
-                local target="$HOME/.config/$basename"
+                basename=$(basename "$item")
+                target="$HOME/.config/$basename"
                 
-                # Remove existing file/directory if it's not a symlink
-                if [[ -e "$target" && ! -L "$target" ]]; then
-                    rm -rf "$target"
+                log "DEBUG: Processing item: $item"
+                log "DEBUG: Target: $target"
+                
+                # Handle different types of configs
+                if [[ "$basename" == "starship.toml" ]]; then
+                    # Symlink read-only config files
+                    ln -sf "$item" "$target"
+                    success "Symlinked .config/$basename"
+                elif [[ -d "$item" ]]; then
+                    # For directories that apps write to, copy the initial config
+                    cp -r "$item" "$target"
+                    success "Copied .config/$basename (writable directory)"
+                else
+                    # For other files, symlink them
+                    ln -sf "$item" "$target"
+                    success "Symlinked .config/$basename"
                 fi
-                
-                # Create symlink
-                ln -sf "$item" "$target"
-                success "Symlinked .config/$basename"
             fi
         done
+    else
+        log "No .config directory found in dotfiles"
+    fi
+
+    # Create symlinks for zsh configuration files
+    if [[ -d "$dotfiles_dir/zsh" ]]; then
+        log "Creating zsh configuration symlinks..."
+        
+        # Create .oh-my-zsh/custom directory if it doesn't exist
+        mkdir -p "$HOME/.oh-my-zsh/custom"
+        
+        # Symlink zsh files to .oh-my-zsh/custom
+        for item in "$dotfiles_dir/zsh"/*; do
+            if [[ -e "$item" ]]; then
+                basename=$(basename "$item")
+                target="$HOME/.oh-my-zsh/custom/$basename"
+                
+                # Create symlink (ln -sf will overwrite existing files)
+                ln -sf "$item" "$target"
+                success "Symlinked zsh/$basename to .oh-my-zsh/custom/"
+            fi
+        done
+    else
+        log "No zsh directory found in dotfiles"
     fi
 
     success "Created symlinks"
@@ -258,39 +309,56 @@ EOF
 
 # Initialize sheldon
 setup_sheldon() {
-    if [[ ! -d "$HOME/.config/sheldon" ]]; then
-        log "Initializing sheldon..."
-        mkdir -p "$HOME/.config/sheldon"
-        sheldon init --shell zsh
-        success "Initialized sheldon"
+    # Ensure .config directory exists
+    mkdir -p "$HOME/.config"
+    
+    # Sheldon config should be managed by symlinks from dotfiles
+    # If plugins.toml doesn't exist after symlink creation, warn the user
+    if [[ ! -f "$HOME/.config/sheldon/plugins.toml" ]]; then
+        warn "No sheldon plugins.toml found after symlink creation"
+        log "If you need a fresh sheldon config, run: sheldon init --shell zsh"
     else
-        log "Sheldon configuration already exists"
+        log "Sheldon configuration found"
     fi
 
-    # Update Sheldon plugins
-    log "Updating Sheldon plugins..."
-    sheldon lock
-    success "Updated Sheldon plugins"
-
-    # Verify plugin installation
-    log "Verifying plugin installation..."
-    if ! sheldon source &> /dev/null; then
-        error "Failed to verify Sheldon plugins"
+    # Update Sheldon plugins (only if plugins.toml exists)
+    if [[ -f "$HOME/.config/sheldon/plugins.toml" ]]; then
+        log "Updating Sheldon plugins..."
+        if sheldon lock; then
+            success "Updated Sheldon plugins"
+        else
+            warn "Failed to update Sheldon plugins"
+        fi
+    else
+        warn "No plugins.toml found, skipping plugin update"
     fi
-    success "Plugin verification complete"
+
+    # Verify plugin installation (only if plugins.toml exists)
+    if [[ -f "$HOME/.config/sheldon/plugins.toml" ]]; then
+        log "Verifying plugin installation..."
+        if sheldon source &> /dev/null; then
+            success "Plugin verification complete"
+        else
+            warn "Failed to verify Sheldon plugins"
+        fi
+    else
+        warn "No plugins.toml found, skipping plugin verification"
+    fi
 }
 
 # Main installation
 main() {
     log "Starting installation for $OS..."
 
+    # Add safety checks at the beginning
+    check_safety
+    
     # Add shell checks at the beginning
     check_zsh
     set_default_shell
 
     ensure_directories
     install_dependencies
-    backup_configs
     create_symlinks
     setup_git
     setup_sheldon
